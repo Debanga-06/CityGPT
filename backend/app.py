@@ -25,13 +25,33 @@ if not os.path.exists(STATIC_DIR):
 def load_stories():
     """Load stories from city_stories.json file"""
     try:
-        with open('city_stories.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        logger.error("city_stories.json file not found")
+        # Try current directory first
+        if os.path.exists('city_stories.json'):
+            with open('city_stories.json', 'r', encoding='utf-8') as f:
+                return json.load(f)
+        # Try different paths
+        possible_paths = [
+            './city_stories.json',
+            os.path.join(os.path.dirname(__file__), 'city_stories.json'),
+            '/opt/render/project/src/city_stories.json'
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                logger.info(f"Found stories file at: {path}")
+                with open(path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        
+        logger.error("city_stories.json file not found in any location")
+        logger.info(f"Current working directory: {os.getcwd()}")
+        logger.info(f"Files in current directory: {os.listdir('.')}")
         return {}
+        
     except json.JSONDecodeError as e:
         logger.error(f"Error parsing city_stories.json: {e}")
+        return {}
+    except Exception as e:
+        logger.error(f"Unexpected error loading stories: {e}")
         return {}
 
 def find_story(stories, city, mood, language):
@@ -140,14 +160,29 @@ def generate_story():
 @app.route('/')
 def root():
     """API root endpoint"""
-    return jsonify({
-        'message': 'Flask Story Audio Generator API',
-        'version': '1.0.0',
-        'endpoints': {
-            'health': '/health',
-            'generate_story': '/generate-story (POST)'
-        }
-    })
+    try:
+        # Test if stories can be loaded
+        stories = load_stories()
+        story_count = len(stories)
+        
+        return jsonify({
+            'message': 'Flask Story Audio Generator API',
+            'version': '1.0.0',
+            'status': 'healthy',
+            'stories_loaded': story_count,
+            'endpoints': {
+                'health': '/health',
+                'generate_story': '/generate-story (POST)'
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error in root endpoint: {e}")
+        return jsonify({
+            'message': 'Flask Story Audio Generator API',
+            'version': '1.0.0',
+            'status': 'error',
+            'error': str(e)
+        }), 500
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -155,5 +190,5 @@ def health_check():
     return jsonify({'status': 'healthy'})
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5001))
+    port = int(os.environ.get('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
