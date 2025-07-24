@@ -1,11 +1,9 @@
 services:
   - type: web
-    name: flask-story-app
+    name: flask-story-api
     env: python
+    rootDir: backend  # This is key!
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn app:app"
     plan: free
     healthCheckPath: /health
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
