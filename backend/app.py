@@ -60,23 +60,45 @@ def find_story(stories, city, mood, language):
     mood_lower = mood.lower()
     language_lower = language.lower()
     
-    # Try exact match first
-    for story_key, story_data in stories.items():
-        if (story_data.get('city', '').lower() == city_lower and
-            story_data.get('mood', '').lower() == mood_lower and
-            story_data.get('language', '').lower() == language_lower):
-            return story_data.get('text', '')
-    
-    # Try partial matches (city and mood)
-    for story_key, story_data in stories.items():
-        if (story_data.get('city', '').lower() == city_lower and
-            story_data.get('mood', '').lower() == mood_lower):
-            return story_data.get('text', '')
-    
-    # Try city match only
-    for story_key, story_data in stories.items():
-        if story_data.get('city', '').lower() == city_lower:
-            return story_data.get('text', '')
+    # Handle both list and dict formats
+    if isinstance(stories, list):
+        # If stories is a list, iterate through items
+        for story_data in stories:
+            if (story_data.get('city', '').lower() == city_lower and
+                story_data.get('mood', '').lower() == mood_lower and
+                story_data.get('language', '').lower() == language_lower):
+                # Try both 'story' and 'text' keys
+                return story_data.get('story', story_data.get('text', ''))
+        
+        # Try partial matches for list format
+        for story_data in stories:
+            if (story_data.get('city', '').lower() == city_lower and
+                story_data.get('mood', '').lower() == mood_lower):
+                return story_data.get('story', story_data.get('text', ''))
+        
+        # Try city match only for list format
+        for story_data in stories:
+            if story_data.get('city', '').lower() == city_lower:
+                return story_data.get('story', story_data.get('text', ''))
+                
+    elif isinstance(stories, dict):
+        # If stories is a dict, iterate through items (original code)
+        for story_key, story_data in stories.items():
+            if (story_data.get('city', '').lower() == city_lower and
+                story_data.get('mood', '').lower() == mood_lower and
+                story_data.get('language', '').lower() == language_lower):
+                return story_data.get('story', story_data.get('text', ''))
+        
+        # Try partial matches for dict format
+        for story_key, story_data in stories.items():
+            if (story_data.get('city', '').lower() == city_lower and
+                story_data.get('mood', '').lower() == mood_lower):
+                return story_data.get('story', story_data.get('text', ''))
+        
+        # Try city match only for dict format
+        for story_key, story_data in stories.items():
+            if story_data.get('city', '').lower() == city_lower:
+                return story_data.get('story', story_data.get('text', ''))
     
     return None
 
@@ -183,6 +205,22 @@ def root():
             'status': 'error',
             'error': str(e)
         }), 500
+
+@app.route('/debug', methods=['GET'])
+def debug():
+    """Debug endpoint to check file system"""
+    try:
+        import os
+        debug_info = {
+            'cwd': os.getcwd(),
+            'files': os.listdir('.'),
+            'python_path': os.sys.path,
+            'stories_exist': os.path.exists('city_stories.json'),
+            'static_exist': os.path.exists('static')
+        }
+        return jsonify(debug_info)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/health', methods=['GET'])
 def health_check():
