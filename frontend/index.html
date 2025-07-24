@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Story Generator</title>
+    <title>AI Story Audio Generator</title>
     <style>
         * {
             margin: 0;
@@ -12,229 +12,201 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 100%;
             max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .header {
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            padding: 30px;
             text-align: center;
-            color: white;
+            margin-bottom: 40px;
         }
 
         .header h1 {
-            font-size: 2.2rem;
+            color: #2d3748;
+            font-size: 2.5rem;
+            font-weight: 700;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .header p {
-            opacity: 0.9;
+            color: #718096;
             font-size: 1.1rem;
-        }
-
-        .form-container {
-            padding: 40px;
         }
 
         .form-group {
             margin-bottom: 25px;
         }
 
-        label {
+        .form-group label {
             display: block;
+            color: #2d3748;
+            font-weight: 600;
             margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
-        select, textarea {
+        .form-control {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
             border-radius: 12px;
             font-size: 1rem;
             transition: all 0.3s ease;
             background: white;
         }
 
-        select:focus, textarea:focus {
+        .form-control:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
         }
 
-        .voice-section {
-            background: #f8f9ff;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            border: 2px dashed #667eea;
-        }
-
-        .voice-controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        select.form-control {
+            cursor: pointer;
         }
 
         .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            flex: 1;
-            min-width: 120px;
-        }
-
-        .btn-record {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-            color: white;
-        }
-
-        .btn-record:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
-        }
-
-        .btn-record.recording {
-            background: linear-gradient(135deg, #ff4757, #c44569);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .btn-submit {
+            width: 100%;
+            padding: 18px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2rem;
-            margin-top: 10px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn-submit:hover {
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-submit:disabled {
-            background: #ccc;
+        .btn:disabled {
+            opacity: 0.7;
             cursor: not-allowed;
             transform: none;
-            box-shadow: none;
         }
 
-        .status {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            font-weight: bold;
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
-        .status.recording {
-            background: #ffe6e6;
-            color: #d63031;
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
-        .status.processing {
-            background: #e6f3ff;
-            color: #0984e3;
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            border-radius: 16px;
+            border-left: 4px solid #667eea;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
         }
 
-        .status.success {
-            background: #e6ffe6;
-            color: #00b894;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .status.error {
-            background: #ffe6e6;
-            color: #d63031;
+        .result.success {
+            border-left-color: #48bb78;
+            background: linear-gradient(135deg, #f0fff4, #c6f6d5);
+        }
+
+        .result.error {
+            border-left-color: #f56565;
+            background: linear-gradient(135deg, #fff5f5, #fed7d7);
         }
 
         .audio-player {
-            margin-top: 25px;
-            padding: 20px;
-            background: #f0f4ff;
-            border-radius: 15px;
-            text-align: center;
+            margin-top: 20px;
         }
 
         .audio-player audio {
             width: 100%;
-            margin-top: 10px;
+            border-radius: 8px;
         }
 
-        .fallback-text {
+        .story-text {
             margin-top: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            font-style: italic;
+            line-height: 1.6;
+            color: #4a5568;
         }
 
-        .fallback-text textarea {
-            min-height: 100px;
-            resize: vertical;
+        .loading-text {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .city-examples {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 5px;
+            font-style: italic;
         }
 
         @media (max-width: 768px) {
             .container {
+                padding: 30px 20px;
                 margin: 10px;
-                border-radius: 15px;
-            }
-            
-            .header {
-                padding: 20px;
             }
             
             .header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .form-container {
-                padding: 25px;
-            }
-            
-            .voice-controls {
-                flex-direction: column;
-            }
-            
-            .btn {
-                min-width: auto;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 1.5rem;
-            }
-            
-            .form-container {
-                padding: 20px;
+                font-size: 2rem;
             }
         }
     </style>
@@ -242,231 +214,166 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎙️ Voice Story Generator</h1>
-            <p>Create personalized stories with your voice</p>
+            <h1>🎧 AI Story Generator</h1>
+            <p>Transform your imagination into audio stories</p>
         </div>
-        
-        <div class="form-container">
-            <form id="storyForm">
-                <div class="form-group">
-                    <label for="mood">Select Your Mood:</label>
-                    <select id="mood" name="mood" required>
-                        <option value="">Choose a mood...</option>
-                        <option value="happy">😊 Happy</option>
-                        <option value="sad">😢 Sad</option>
-                        <option value="excited">🎉 Excited</option>
-                        <option value="calm">😌 Calm</option>
-                        <option value="adventurous">🗺️ Adventurous</option>
-                        <option value="mysterious">🔍 Mysterious</option>
-                    </select>
+
+        <form id="storyForm">
+            <div class="form-group">
+                <label for="city">🏙️ Choose a City</label>
+                <input type="text" id="city" name="city" class="form-control" placeholder="Enter a city name..." required>
+                <div class="city-examples">Examples: Paris, Tokyo, New York, London, Mumbai</div>
+            </div>
+
+            <div class="form-group">
+                <label for="mood">🎭 Story Mood</label>
+                <select id="mood" name="mood" class="form-control" required>
+                    <option value="">Select a mood...</option>
+                    <option value="romantic">💕 Romantic</option>
+                    <option value="adventurous">⚡ Adventurous</option>
+                    <option value="mysterious">🔮 Mysterious</option>
+                    <option value="exciting">🎉 Exciting</option>
+                    <option value="peaceful">🕊️ Peaceful</option>
+                    <option value="magical">✨ Magical</option>
+                    <option value="thrilling">🎢 Thrilling</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="language">🌍 Language</label>
+                <select id="language" name="language" class="form-control" required>
+                    <option value="">Select a language...</option>
+                    <option value="english">🇺🇸 English</option>
+                    <option value="spanish">🇪🇸 Spanish</option>
+                    <option value="french">🇫🇷 French</option>
+                    <option value="german">🇩🇪 German</option>
+                    <option value="italian">🇮🇹 Italian</option>
+                    <option value="portuguese">🇵🇹 Portuguese</option>
+                    <option value="russian">🇷🇺 Russian</option>
+                    <option value="japanese">🇯🇵 Japanese</option>
+                    <option value="korean">🇰🇷 Korean</option>
+                    <option value="chinese">🇨🇳 Chinese</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn" id="generateBtn">
+                <span class="btn-text">✨ Generate Story Audio</span>
+            </button>
+        </form>
+
+        <div id="result" class="result">
+            <div id="loading" class="loading-text" style="display: none;">
+                🎵 Creating your magical story... Please wait!
+            </div>
+            
+            <div id="success-content" style="display: none;">
+                <h3 style="color: #48bb78; margin-bottom: 15px;">🎉 Story Generated Successfully!</h3>
+                <div class="audio-player">
+                    <audio id="audioPlayer" controls style="display: none;">
+                        Your browser does not support the audio element.
+                    </audio>
                 </div>
-
-                <div class="form-group">
-                    <label for="city">Select Your City:</label>
-                    <select id="city" name="city" required>
-                        <option value="">Choose a city...</option>
-                        <option value="kolkata">Kolkata</option>
-                        <option value="mumbai">Mumbai</option>
-                        <option value="delhi">Delhi</option>
-                        <option value="bangalore">Bangalore</option>
-                        <option value="chennai">Chennai</option>
-                        <option value="hyderabad">Hyderabad</option>
-                        <option value="pune">Pune</option>
-                        <option value="ahmedabad">Ahmedabad</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="language">Select Language:</label>
-                    <select id="language" name="language" required>
-                        <option value="">Choose a language...</option>
-                        <option value="english">🇺🇸 English</option>
-                        <option value="hindi">🇮🇳 Hindi</option>
-                        <option value="bengali">🇧🇩 Bengali</option>
-                    </select>
-                </div>
-
-                <div class="voice-section">
-                    <h3>🎤 Voice Input</h3>
-                    <div class="voice-controls">
-                        <button type="button" class="btn btn-record" id="recordBtn">
-                            🎙️ Start Recording
-                        </button>
-                    </div>
-                    
-                    <div id="status" class="status" style="display: none;"></div>
-                    
-                    <div class="fallback-text">
-                        <label for="textInput">Or type your story prompt:</label>
-                        <textarea id="textInput" name="textInput" placeholder="Describe what kind of story you'd like to hear..."></textarea>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-submit" id="submitBtn">
-                    ✨ Generate Story
-                </button>
-            </form>
-
-            <div id="audioPlayer" class="audio-player" style="display: none;">
-                <h3>🔊 Your Story</h3>
-                <audio controls id="storyAudio">
-                    Your browser does not support the audio element.
-                </audio>
+                <div id="storyText" class="story-text" style="display: none;"></div>
+            </div>
+            
+            <div id="error-content" style="display: none;">
+                <h3 style="color: #f56565; margin-bottom: 10px;">❌ Oops! Something went wrong</h3>
+                <p id="errorMessage"></p>
             </div>
         </div>
     </div>
 
     <script>
-        class VoiceStoryGenerator {
-            constructor() {
-                this.mediaRecorder = null;
-                this.audioChunks = [];
-                this.isRecording = false;
-                this.recordBtn = document.getElementById('recordBtn');
-                this.submitBtn = document.getElementById('submitBtn');
-                this.status = document.getElementById('status');
-                this.form = document.getElementById('storyForm');
-                this.audioPlayer = document.getElementById('audioPlayer');
-                this.storyAudio = document.getElementById('storyAudio');
-                
-                this.initializeEventListeners();
-                this.checkMicrophoneSupport();
-            }
+        // Configuration - Update this with your deployed backend URL
+        const API_BASE_URL = 'http://localhost:5001'; // Change this to your Render URL when deployed
+        // Example: const API_BASE_URL = 'https://your-app-name.onrender.com';
 
-            initializeEventListeners() {
-                this.recordBtn.addEventListener('click', () => this.toggleRecording());
-                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-            }
+        const form = document.getElementById('storyForm');
+        const result = document.getElementById('result');
+        const generateBtn = document.getElementById('generateBtn');
+        const btnText = document.querySelector('.btn-text');
+        const loading = document.getElementById('loading');
+        const successContent = document.getElementById('success-content');
+        const errorContent = document.getElementById('error-content');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const storyText = document.getElementById('storyText');
+        const errorMessage = document.getElementById('errorMessage');
 
-            async checkMicrophoneSupport() {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    this.showStatus('Microphone not supported. Please use text input.', 'error');
-                    this.recordBtn.disabled = true;
-                }
-            }
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const data = {
+                city: formData.get('city').trim(),
+                mood: formData.get('mood'),
+                language: formData.get('language')
+            };
 
-            async toggleRecording() {
-                if (!this.isRecording) {
-                    await this.startRecording();
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.classList.add('btn-loading');
+            btnText.textContent = 'Generating...';
+            
+            result.style.display = 'block';
+            result.className = 'result';
+            loading.style.display = 'block';
+            successContent.style.display = 'none';
+            errorContent.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/generate-story`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const responseData = await response.json();
+
+                if (response.ok && responseData.success) {
+                    // Success
+                    result.classList.add('success');
+                    loading.style.display = 'none';
+                    successContent.style.display = 'block';
+                    
+                    // Set up audio player
+                    audioPlayer.src = responseData.audio_url;
+                    audioPlayer.style.display = 'block';
+                    
+                    // Show story text
+                    storyText.textContent = responseData.story_text;
+                    storyText.style.display = 'block';
+                    
                 } else {
-                    this.stopRecording();
+                    // Error
+                    throw new Error(responseData.error || 'Failed to generate story');
                 }
+
+            } catch (error) {
+                console.error('Error:', error);
+                result.classList.add('error');
+                loading.style.display = 'none';
+                errorContent.style.display = 'block';
+                errorMessage.textContent = error.message || 'Network error. Please check if the backend is running.';
+            } finally {
+                // Reset button state
+                generateBtn.disabled = false;
+                generateBtn.classList.remove('btn-loading');
+                btnText.textContent = '✨ Generate Story Audio';
             }
+        });
 
-            async startRecording() {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    this.mediaRecorder = new MediaRecorder(stream);
-                    this.audioChunks = [];
-
-                    this.mediaRecorder.ondataavailable = (event) => {
-                        this.audioChunks.push(event.data);
-                    };
-
-                    this.mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
-                        this.audioBlob = audioBlob;
-                        this.showStatus('Recording completed!', 'success');
-                    };
-
-                    this.mediaRecorder.start();
-                    this.isRecording = true;
-                    this.recordBtn.textContent = '⏹️ Stop Recording';
-                    this.recordBtn.classList.add('recording');
-                    this.showStatus('Recording... Speak now!', 'recording');
-
-                } catch (error) {
-                    console.error('Error accessing microphone:', error);
-                    this.showStatus('Could not access microphone. Please use text input.', 'error');
-                }
-            }
-
-            stopRecording() {
-                if (this.mediaRecorder && this.isRecording) {
-                    this.mediaRecorder.stop();
-                    this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                    this.isRecording = false;
-                    this.recordBtn.textContent = '🎙️ Start Recording';
-                    this.recordBtn.classList.remove('recording');
-                }
-            }
-
-            async handleSubmit(e) {
-                e.preventDefault();
-                
-                const mood = document.getElementById('mood').value;
-                const city = document.getElementById('city').value;
-                const language = document.getElementById('language').value;
-                const textInput = document.getElementById('textInput').value;
-
-                if (!mood || !city || !language) {
-                    this.showStatus('Please fill in all dropdown fields.', 'error');
-                    return;
-                }
-
-                if (!this.audioBlob && !textInput.trim()) {
-                    this.showStatus('Please record audio or enter text input.', 'error');
-                    return;
-                }
-
-                this.submitBtn.disabled = true;
-                this.showStatus('Generating your story...', 'processing');
-
-                try {
-                    const formData = new FormData();
-                    formData.append('mood', mood);
-                    formData.append('city', city);
-                    formData.append('language', language);
-                    
-                    if (this.audioBlob) {
-                        formData.append('audio', this.audioBlob, 'recording.wav');
-                    } else {
-                        formData.append('text', textInput);
-                    }
-
-                    const response = await fetch('/generate-story', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Server error: ${response.status}`);
-                    }
-
-                    const audioBlob = await response.blob();
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    
-                    this.storyAudio.src = audioUrl;
-                    this.audioPlayer.style.display = 'block';
-                    this.showStatus('Story generated successfully!', 'success');
-                    
-                    // Scroll to audio player
-                    this.audioPlayer.scrollIntoView({ behavior: 'smooth' });
-
-                } catch (error) {
-                    console.error('Error generating story:', error);
-                    this.showStatus('Failed to generate story. Please try again.', 'error');
-                } finally {
-                    this.submitBtn.disabled = false;
-                }
-            }
-
-            showStatus(message, type) {
-                this.status.textContent = message;
-                this.status.className = `status ${type}`;
-                this.status.style.display = 'block';
-                
-                if (type === 'success') {
-                    setTimeout(() => {
-                        this.status.style.display = 'none';
-                    }, 3000);
-                }
-            }
-        }
-
-        // Initialize the app when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            new VoiceStoryGenerator();
+        // Add some interactive effects
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.transform = 'translateY(0)';
+            });
         });
     </script>
 </body>

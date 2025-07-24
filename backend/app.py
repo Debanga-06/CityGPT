@@ -1,10 +1,14 @@
 from flask import Flask, request, jsonify, url_for
+from flask_cors import CORS
 import json
 import os
 from gtts import gTTS
 import logging
 
 app = Flask(__name__)
+
+# Enable CORS for all routes (important for frontend-backend separation)
+CORS(app)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -132,6 +136,18 @@ def generate_story():
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/')
+def root():
+    """API root endpoint"""
+    return jsonify({
+        'message': 'Flask Story Audio Generator API',
+        'version': '1.0.0',
+        'endpoints': {
+            'health': '/health',
+            'generate_story': '/generate-story (POST)'
+        }
+    })
 
 @app.route('/health', methods=['GET'])
 def health_check():
