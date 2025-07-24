@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,6 +38,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -138,8 +140,13 @@
         }
 
         @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
         }
 
         .result {
@@ -153,8 +160,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .result.success {
@@ -204,13 +216,14 @@
                 padding: 30px 20px;
                 margin: 10px;
             }
-            
+
             .header h1 {
                 font-size: 2rem;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -221,7 +234,8 @@
         <form id="storyForm">
             <div class="form-group">
                 <label for="city">🏙️ Choose a City</label>
-                <input type="text" id="city" name="city" class="form-control" placeholder="Enter a city name..." required>
+                <input type="text" id="city" name="city" class="form-control" placeholder="Enter a city name..."
+                    required>
                 <div class="city-examples">Examples: Paris, Tokyo, New York, London, Mumbai</div>
             </div>
 
@@ -244,8 +258,8 @@
                 <select id="language" name="language" class="form-control" required>
                     <option value="">Select a language...</option>
                     <option value="english">🇺🇸 English</option>
-                    <option value="spanish">🇪🇸 Spanish</option>
-                    <option value="french">🇫🇷 French</option>
+                    <option value="Hindi">🇪🇸 Hindi</option>
+                    <option value="Bengali">🇫🇷 Bengali</option>
                     <option value="german">🇩🇪 German</option>
                     <option value="italian">🇮🇹 Italian</option>
                     <option value="portuguese">🇵🇹 Portuguese</option>
@@ -265,7 +279,7 @@
             <div id="loading" class="loading-text" style="display: none;">
                 🎵 Creating your magical story... Please wait!
             </div>
-            
+
             <div id="success-content" style="display: none;">
                 <h3 style="color: #48bb78; margin-bottom: 15px;">🎉 Story Generated Successfully!</h3>
                 <div class="audio-player">
@@ -275,7 +289,7 @@
                 </div>
                 <div id="storyText" class="story-text" style="display: none;"></div>
             </div>
-            
+
             <div id="error-content" style="display: none;">
                 <h3 style="color: #f56565; margin-bottom: 10px;">❌ Oops! Something went wrong</h3>
                 <p id="errorMessage"></p>
@@ -285,8 +299,7 @@
 
     <script>
         // Configuration - Update this with your deployed backend URL
-        const API_BASE_URL = 'http://localhost:5001'; // Change this to your Render URL when deployed
-        // Example: const API_BASE_URL = 'https://your-app-name.onrender.com';
+        const API_BASE_URL = 'https://flask-story-app.onrender.com';
 
         const form = document.getElementById('storyForm');
         const result = document.getElementById('result');
@@ -301,7 +314,7 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const formData = new FormData(form);
             const data = {
                 city: formData.get('city').trim(),
@@ -313,12 +326,16 @@
             generateBtn.disabled = true;
             generateBtn.classList.add('btn-loading');
             btnText.textContent = 'Generating...';
-            
+
             result.style.display = 'block';
             result.className = 'result';
             loading.style.display = 'block';
             successContent.style.display = 'none';
             errorContent.style.display = 'none';
+
+            // Debug logging
+            console.log('Making request to:', `${API_BASE_URL}/generate-story`);
+            console.log('Request data:', data);
 
             try {
                 const response = await fetch(`${API_BASE_URL}/generate-story`, {
@@ -329,33 +346,43 @@
                     body: JSON.stringify(data)
                 });
 
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+
                 const responseData = await response.json();
+                console.log('Response data:', responseData);
 
                 if (response.ok && responseData.success) {
                     // Success
                     result.classList.add('success');
                     loading.style.display = 'none';
                     successContent.style.display = 'block';
-                    
+
                     // Set up audio player
                     audioPlayer.src = responseData.audio_url;
                     audioPlayer.style.display = 'block';
-                    
+
                     // Show story text
                     storyText.textContent = responseData.story_text;
                     storyText.style.display = 'block';
-                    
+
                 } else {
                     // Error
                     throw new Error(responseData.error || 'Failed to generate story');
                 }
 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error details:', error);
                 result.classList.add('error');
                 loading.style.display = 'none';
                 errorContent.style.display = 'block';
-                errorMessage.textContent = error.message || 'Network error. Please check if the backend is running.';
+
+                // More detailed error message
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage.textContent = 'Network error: Unable to connect to the server. Please check your internet connection.';
+                } else {
+                    errorMessage.textContent = error.message || 'Network error. Please check if the backend is running.';
+                }
             } finally {
                 // Reset button state
                 generateBtn.disabled = false;
@@ -367,14 +394,15 @@
         // Add some interactive effects
         const inputs = document.querySelectorAll('.form-control');
         inputs.forEach(input => {
-            input.addEventListener('focus', function() {
+            input.addEventListener('focus', function () {
                 this.style.transform = 'translateY(-2px)';
             });
-            
-            input.addEventListener('blur', function() {
+
+            input.addEventListener('blur', function () {
                 this.style.transform = 'translateY(0)';
             });
         });
     </script>
 </body>
+
 </html>
