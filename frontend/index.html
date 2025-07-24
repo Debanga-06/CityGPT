@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Story Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+            font-size: 1.1rem;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .voice-section {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px dashed #667eea;
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-record {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .btn-record:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-record.recording {
+            background: linear-gradient(135deg, #ff4757, #c44569);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .status.recording {
+            background: #ffe6e6;
+            color: #d63031;
+        }
+
+        .status.processing {
+            background: #e6f3ff;
+            color: #0984e3;
+        }
+
+        .status.success {
+            background: #e6ffe6;
+            color: #00b894;
+        }
+
+        .status.error {
+            background: #ffe6e6;
+            color: #d63031;
+        }
+
+        .audio-player {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f0f4ff;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .fallback-text {
+            margin-top: 15px;
+        }
+
+        .fallback-text textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .form-container {
+                padding: 25px;
+            }
+            
+            .voice-controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                min-width: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ Voice Story Generator</h1>
+            <p>Create personalized stories with your voice</p>
+        </div>
+        
+        <div class="form-container">
+            <form id="storyForm">
+                <div class="form-group">
+                    <label for="mood">Select Your Mood:</label>
+                    <select id="mood" name="mood" required>
+                        <option value="">Choose a mood...</option>
+                        <option value="happy">😊 Happy</option>
+                        <option value="sad">😢 Sad</option>
+                        <option value="excited">🎉 Excited</option>
+                        <option value="calm">😌 Calm</option>
+                        <option value="adventurous">🗺️ Adventurous</option>
+                        <option value="mysterious">🔍 Mysterious</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="city">Select Your City:</label>
+                    <select id="city" name="city" required>
+                        <option value="">Choose a city...</option>
+                        <option value="kolkata">Kolkata</option>
+                        <option value="mumbai">Mumbai</option>
+                        <option value="delhi">Delhi</option>
+                        <option value="bangalore">Bangalore</option>
+                        <option value="chennai">Chennai</option>
+                        <option value="hyderabad">Hyderabad</option>
+                        <option value="pune">Pune</option>
+                        <option value="ahmedabad">Ahmedabad</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="language">Select Language:</label>
+                    <select id="language" name="language" required>
+                        <option value="">Choose a language...</option>
+                        <option value="english">🇺🇸 English</option>
+                        <option value="hindi">🇮🇳 Hindi</option>
+                        <option value="bengali">🇧🇩 Bengali</option>
+                    </select>
+                </div>
+
+                <div class="voice-section">
+                    <h3>🎤 Voice Input</h3>
+                    <div class="voice-controls">
+                        <button type="button" class="btn btn-record" id="recordBtn">
+                            🎙️ Start Recording
+                        </button>
+                    </div>
+                    
+                    <div id="status" class="status" style="display: none;"></div>
+                    
+                    <div class="fallback-text">
+                        <label for="textInput">Or type your story prompt:</label>
+                        <textarea id="textInput" name="textInput" placeholder="Describe what kind of story you'd like to hear..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-submit" id="submitBtn">
+                    ✨ Generate Story
+                </button>
+            </form>
+
+            <div id="audioPlayer" class="audio-player" style="display: none;">
+                <h3>🔊 Your Story</h3>
+                <audio controls id="storyAudio">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class VoiceStoryGenerator {
+            constructor() {
+                this.mediaRecorder = null;
+                this.audioChunks = [];
+                this.isRecording = false;
+                this.recordBtn = document.getElementById('recordBtn');
+                this.submitBtn = document.getElementById('submitBtn');
+                this.status = document.getElementById('status');
+                this.form = document.getElementById('storyForm');
+                this.audioPlayer = document.getElementById('audioPlayer');
+                this.storyAudio = document.getElementById('storyAudio');
+                
+                this.initializeEventListeners();
+                this.checkMicrophoneSupport();
+            }
+
+            initializeEventListeners() {
+                this.recordBtn.addEventListener('click', () => this.toggleRecording());
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+            }
+
+            async checkMicrophoneSupport() {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    this.showStatus('Microphone not supported. Please use text input.', 'error');
+                    this.recordBtn.disabled = true;
+                }
+            }
+
+            async toggleRecording() {
+                if (!this.isRecording) {
+                    await this.startRecording();
+                } else {
+                    this.stopRecording();
+                }
+            }
+
+            async startRecording() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.audioChunks = [];
+
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        this.audioChunks.push(event.data);
+                    };
+
+                    this.mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+                        this.audioBlob = audioBlob;
+                        this.showStatus('Recording completed!', 'success');
+                    };
+
+                    this.mediaRecorder.start();
+                    this.isRecording = true;
+                    this.recordBtn.textContent = '⏹️ Stop Recording';
+                    this.recordBtn.classList.add('recording');
+                    this.showStatus('Recording... Speak now!', 'recording');
+
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    this.showStatus('Could not access microphone. Please use text input.', 'error');
+                }
+            }
+
+            stopRecording() {
+                if (this.mediaRecorder && this.isRecording) {
+                    this.mediaRecorder.stop();
+                    this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                    this.isRecording = false;
+                    this.recordBtn.textContent = '🎙️ Start Recording';
+                    this.recordBtn.classList.remove('recording');
+                }
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+                
+                const mood = document.getElementById('mood').value;
+                const city = document.getElementById('city').value;
+                const language = document.getElementById('language').value;
+                const textInput = document.getElementById('textInput').value;
+
+                if (!mood || !city || !language) {
+                    this.showStatus('Please fill in all dropdown fields.', 'error');
+                    return;
+                }
+
+                if (!this.audioBlob && !textInput.trim()) {
+                    this.showStatus('Please record audio or enter text input.', 'error');
+                    return;
+                }
+
+                this.submitBtn.disabled = true;
+                this.showStatus('Generating your story...', 'processing');
+
+                try {
+                    const formData = new FormData();
+                    formData.append('mood', mood);
+                    formData.append('city', city);
+                    formData.append('language', language);
+                    
+                    if (this.audioBlob) {
+                        formData.append('audio', this.audioBlob, 'recording.wav');
+                    } else {
+                        formData.append('text', textInput);
+                    }
+
+                    const response = await fetch('/generate-story', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    this.storyAudio.src = audioUrl;
+                    this.audioPlayer.style.display = 'block';
+                    this.showStatus('Story generated successfully!', 'success');
+                    
+                    // Scroll to audio player
+                    this.audioPlayer.scrollIntoView({ behavior: 'smooth' });
+
+                } catch (error) {
+                    console.error('Error generating story:', error);
+                    this.showStatus('Failed to generate story. Please try again.', 'error');
+                } finally {
+                    this.submitBtn.disabled = false;
+                }
+            }
+
+            showStatus(message, type) {
+                this.status.textContent = message;
+                this.status.className = `status ${type}`;
+                this.status.style.display = 'block';
+                
+                if (type === 'success') {
+                    setTimeout(() => {
+                        this.status.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new VoiceStoryGenerator();
+        });
+    </script>
+</body>
+</html>
