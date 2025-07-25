@@ -7,7 +7,7 @@ import logging
 
 app = Flask(__name__)
 
-# Enable CORS for all routes (important for frontend-backend separation)
+# Enable CORS for all routes 
 CORS(app)
 
 # Configure logging
@@ -25,11 +25,11 @@ if not os.path.exists(STATIC_DIR):
 def load_stories():
     """Load stories from city_stories.json file"""
     try:
-        # Try current directory first
+        
         if os.path.exists('city_stories.json'):
             with open('city_stories.json', 'r', encoding='utf-8') as f:
                 return json.load(f)
-        # Try different paths
+        
         possible_paths = [
             './city_stories.json',
             os.path.join(os.path.dirname(__file__), 'city_stories.json'),
@@ -67,35 +67,33 @@ def find_story(stories, city, mood, language):
             if (story_data.get('city', '').lower() == city_lower and
                 story_data.get('mood', '').lower() == mood_lower and
                 story_data.get('language', '').lower() == language_lower):
-                # Try both 'story' and 'text' keys
+                
                 return story_data.get('story', story_data.get('text', ''))
         
-        # Try partial matches for list format
+    
         for story_data in stories:
             if (story_data.get('city', '').lower() == city_lower and
                 story_data.get('mood', '').lower() == mood_lower):
                 return story_data.get('story', story_data.get('text', ''))
         
-        # Try city match only for list format
+    
         for story_data in stories:
             if story_data.get('city', '').lower() == city_lower:
                 return story_data.get('story', story_data.get('text', ''))
                 
     elif isinstance(stories, dict):
-        # If stories is a dict, iterate through items (original code)
+     
         for story_key, story_data in stories.items():
             if (story_data.get('city', '').lower() == city_lower and
                 story_data.get('mood', '').lower() == mood_lower and
                 story_data.get('language', '').lower() == language_lower):
                 return story_data.get('story', story_data.get('text', ''))
-        
-        # Try partial matches for dict format
+
         for story_key, story_data in stories.items():
             if (story_data.get('city', '').lower() == city_lower and
                 story_data.get('mood', '').lower() == mood_lower):
                 return story_data.get('story', story_data.get('text', ''))
         
-        # Try city match only for dict format
         for story_key, story_data in stories.items():
             if story_data.get('city', '').lower() == city_lower:
                 return story_data.get('story', story_data.get('text', ''))
@@ -106,18 +104,17 @@ def find_story(stories, city, mood, language):
 def generate_story():
     """Generate audio story based on city, mood, and language"""
     try:
-        # Get JSON data from request
+     
         data = request.get_json()
         
         if not data:
             return jsonify({'error': 'No JSON data provided'}), 400
         
-        # Extract required parameters
         city = data.get('city')
         mood = data.get('mood')
         language = data.get('language')
         
-        # Validate required parameters
+
         if not all([city, mood, language]):
             return jsonify({
                 'error': 'Missing required parameters: city, mood, language'
@@ -226,6 +223,10 @@ def debug():
 def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'healthy'})
+
+@app.route("/ping")
+def ping():
+    return "pong", 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
