@@ -101,8 +101,8 @@ def find_story(stories, city, mood, language):
     
     return None
 
-def generate_story_with_claude(city, mood, language, story_length="medium"):
-    """Generate story using Claude API"""
+def generate_story_with_groq(city, mood, language, story_length="medium"):
+    """Generate story using Groq API (FREE & FAST)"""
     try:
         # Enhanced prompt for better story generation
         if story_length == "short":
@@ -127,44 +127,42 @@ def generate_story_with_claude(city, mood, language, story_length="medium"):
         Make the story feel personal and authentic to someone experiencing {city} for the first time."""
 
         headers = {
-            "x-api-key": os.getenv("CLAUDE_API_KEY"),
-            "anthropic-version": "2023-06-01", 
-            "content-type": "application/json"
+            "Authorization": f"Bearer {os.getenv('GROQ_API_KEY')}",
+            "Content-Type": "application/json"
         }
 
-        # Use Claude Sonnet 4 (latest model)
         payload = {
-            "model": "claude-sonnet-4-20250514",  # Updated to latest model
+            "model": "llama-3.1-70b-versatile",  # Fast and high-quality model
+            "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 800 if story_length == "long" else 500,
-            "temperature": 0.7,  # Add some creativity
-            "messages": [{"role": "user", "content": prompt}]
+            "temperature": 0.7  # Add creativity
         }
 
         response = requests.post(
-            "https://api.anthropic.com/v1/messages", 
-            headers=headers, 
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers=headers,
             json=payload,
-            timeout=30  # Add timeout
+            timeout=30
         )
 
         if response.status_code != 200:
-            logger.error(f"Claude API error: {response.status_code} - {response.text}")
-            return None, f"Claude API failed with status {response.status_code}"
+            logger.error(f"Groq API error: {response.status_code} - {response.text}")
+            return None, f"Groq API failed with status {response.status_code}"
 
         content = response.json()
-        story_text = content["content"][0]["text"]
+        story_text = content["choices"][0]["message"]["content"]
         return story_text, None
 
     except requests.exceptions.Timeout:
-        return None, "Request to Claude API timed out"
+        return None, "Request to Groq API timed out"
     except requests.exceptions.RequestException as e:
         logger.error(f"Request error: {e}")
         return None, f"Network error: {str(e)}"
     except KeyError as e:
         logger.error(f"Unexpected API response format: {e}")
-        return None, "Unexpected response from Claude API"
+        return None, "Unexpected response from Groq API"
     except Exception as e:
-        logger.error(f"Claude API error: {e}")
+        logger.error(f"Groq API error: {e}")
         return None, f"Failed to generate story: {str(e)}"
 
 @app.route('/generate-story', methods=['POST'])
@@ -246,7 +244,7 @@ def generate_story():
 
 @app.route('/generate-dynamic-story', methods=['POST'])
 def generate_dynamic_story():
-    """Generate dynamic story using Claude AI"""
+    """Generate dynamic story using Groq AI (FREE)"""
     try:
         data = request.get_json()
         
@@ -262,12 +260,12 @@ def generate_dynamic_story():
         if not all([city, mood]):
             return jsonify({'error': 'Missing required fields: city, mood'}), 400
 
-        # Check if Claude API key is available
-        if not os.getenv("CLAUDE_API_KEY"):
-            return jsonify({'error': 'Claude API key not configured'}), 500
+        # Check if Groq API key is available
+        if not os.getenv("GROQ_API_KEY"):
+            return jsonify({'error': 'Groq API key not configured'}), 500
 
-        # Generate story using Claude
-        story_text, error = generate_story_with_claude(city, mood, language, story_length)
+        # Generate story using Groq
+        story_text, error = generate_story_with_groq(city, mood, language, story_length)
         
         if error:
             return jsonify({'error': error}), 500
@@ -295,7 +293,7 @@ def generate_dynamic_story():
             'success': True,
             'story_text': story_text,
             'audio_url': audio_url,
-            'source': 'claude-ai',
+            'source': 'groq-ai',
             'parameters': {
                 'city': city,
                 'mood': mood,
@@ -354,18 +352,19 @@ def root():
         # Test if stories can be loaded
         stories = load_stories()
         story_count = len(stories)
-        claude_configured = bool(os.getenv("CLAUDE_API_KEY"))
+        groq_configured = bool(os.getenv("GROQ_API_KEY"))
         
         return jsonify({
             'message': 'Flask Story Audio Generator API',
-            'version': '2.0.0',
+            'version': '2.1.0',
             'status': 'healthy',
             'stories_loaded': story_count,
-            'claude_ai_enabled': claude_configured,
+            'groq_ai_enabled': groq_configured,
+            'ai_provider': 'Groq (Free & Fast)',
             'endpoints': {
                 'health': '/health',
                 'generate_story': '/generate-story (POST) - Uses pre-written stories',
-                'generate_dynamic_story': '/generate-dynamic-story (POST) - Uses Claude AI',
+                'generate_dynamic_story': '/generate-dynamic-story (POST) - Uses Groq AI',
                 'story_options': '/story-options (GET) - Get available options',
                 'debug': '/debug (GET)'
             }
@@ -374,7 +373,7 @@ def root():
         logger.error(f"Error in root endpoint: {e}")
         return jsonify({
             'message': 'Flask Story Audio Generator API',
-            'version': '2.0.0',
+            'version': '2.1.0',
             'status': 'error',
             'error': str(e)
         }), 500
@@ -388,7 +387,7 @@ def debug():
             'files': os.listdir('.'),
             'stories_exist': os.path.exists('city_stories.json'),
             'static_exist': os.path.exists('static'),
-            'claude_api_key_configured': bool(os.getenv("CLAUDE_API_KEY")),
+            'groq_api_key_configured': bool(os.getenv("GROQ_API_KEY")),
             'environment_variables': list(os.environ.keys())
         }
         return jsonify(debug_info)
@@ -400,7 +399,8 @@ def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'claude_configured': bool(os.getenv("CLAUDE_API_KEY"))
+        'groq_configured': bool(os.getenv("GROQ_API_KEY")),
+        'ai_provider': 'Groq'
     })
 
 @app.route("/ping")
