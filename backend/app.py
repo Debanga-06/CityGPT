@@ -1,233 +1,163 @@
-from flask import Flask, request, jsonify, url_for
-from flask_cors import CORS
-import json
 import os
-from gtts import gTTS
+import json
+import random
 import logging
+from flask import Flask, request, jsonify, send_file, url_for
+from flask_cors import CORS
+from gtts import gTTS
+import requests
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
+
+# Constants
+AUDIO_FILE = "audio.mp3"
+AUDIO_PATH = os.path.join("static", AUDIO_FILE)
+STORIES_FILE = "city_stories.json"
+
+# Flask setup
 app = Flask(__name__)
-
-# Enable CORS for all routes 
 CORS(app)
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Logging setup
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Ensure static directory exists
-STATIC_DIR = 'static'
-AUDIO_FILE = 'audio.mp3'
-AUDIO_PATH = os.path.join(STATIC_DIR, AUDIO_FILE)
+@app.route('/')
+def index():
+    return jsonify({"status": "Server is running"}), 200
 
-if not os.path.exists(STATIC_DIR):
-    os.makedirs(STATIC_DIR)
+@app.route('/health')
+def health():
+    return jsonify({"status": "healthy"}), 200
 
-def load_stories():
-    """Load stories from city_stories.json file"""
-    try:
-        
-        if os.path.exists('city_stories.json'):
-            with open('city_stories.json', 'r', encoding='utf-8') as f:
-                return json.load(f)
-        
-        possible_paths = [
-            './city_stories.json',
-            os.path.join(os.path.dirname(__file__), 'city_stories.json'),
-            '/opt/render/project/src/city_stories.json'
-        ]
-        
-        for path in possible_paths:
-            if os.path.exists(path):
-                logger.info(f"Found stories file at: {path}")
-                with open(path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-        
-        logger.error("city_stories.json file not found in any location")
-        logger.info(f"Current working directory: {os.getcwd()}")
-        logger.info(f"Files in current directory: {os.listdir('.')}")
-        return {}
-        
-    except json.JSONDecodeError as e:
-        logger.error(f"Error parsing city_stories.json: {e}")
-        return {}
-    except Exception as e:
-        logger.error(f"Unexpected error loading stories: {e}")
-        return {}
+@app.route('/ping')
+def ping():
+    return jsonify({"message": "pong"}), 200
 
-def find_story(stories, city, mood, language):
-    """Find matching story based on city, mood, and language"""
-    city_lower = city.lower()
-    mood_lower = mood.lower()
-    language_lower = language.lower()
-    
-    # Handle both list and dict formats
-    if isinstance(stories, list):
-        # If stories is a list, iterate through items
-        for story_data in stories:
-            if (story_data.get('city', '').lower() == city_lower and
-                story_data.get('mood', '').lower() == mood_lower and
-                story_data.get('language', '').lower() == language_lower):
-                
-                return story_data.get('story', story_data.get('text', ''))
-        
-    
-        for story_data in stories:
-            if (story_data.get('city', '').lower() == city_lower and
-                story_data.get('mood', '').lower() == mood_lower):
-                return story_data.get('story', story_data.get('text', ''))
-        
-    
-        for story_data in stories:
-            if story_data.get('city', '').lower() == city_lower:
-                return story_data.get('story', story_data.get('text', ''))
-                
-    elif isinstance(stories, dict):
-     
-        for story_key, story_data in stories.items():
-            if (story_data.get('city', '').lower() == city_lower and
-                story_data.get('mood', '').lower() == mood_lower and
-                story_data.get('language', '').lower() == language_lower):
-                return story_data.get('story', story_data.get('text', ''))
-
-        for story_key, story_data in stories.items():
-            if (story_data.get('city', '').lower() == city_lower and
-                story_data.get('mood', '').lower() == mood_lower):
-                return story_data.get('story', story_data.get('text', ''))
-        
-        for story_key, story_data in stories.items():
-            if story_data.get('city', '').lower() == city_lower:
-                return story_data.get('story', story_data.get('text', ''))
-    
-    return None
+@app.route('/debug', methods=['GET'])
+def debug():
+    return jsonify({
+        "cwd": os.getcwd(),
+        "env": dict(os.environ),
+        "files": os.listdir('.')
+    })
 
 @app.route('/generate-story', methods=['POST'])
 def generate_story():
-    """Generate audio story based on city, mood, and language"""
     try:
-     
         data = request.get_json()
-        
-        if not data:
-            return jsonify({'error': 'No JSON data provided'}), 400
-        
         city = data.get('city')
         mood = data.get('mood')
-        language = data.get('language')
-        
+        language = data.get('language', 'english')
 
-        if not all([city, mood, language]):
-            return jsonify({
-                'error': 'Missing required parameters: city, mood, language'
-            }), 400
-        
-        # Load stories
-        stories = load_stories()
-        if not stories:
-            return jsonify({'error': 'No stories available'}), 500
-        
-        # Find matching story
-        story_text = find_story(stories, city, mood, language)
-        
-        if not story_text:
-            return jsonify({
-                'error': f'No story found for city: {city}, mood: {mood}, language: {language}'
-            }), 404
-        
-        # Convert language parameter to gTTS language code
+        logger.info(f"Input: city={city}, mood={mood}, language={language}")
+
+        with open(STORIES_FILE, "r", encoding="utf-8") as f:
+            city_data = json.load(f)
+
+        if city not in city_data or mood not in city_data[city]:
+            return jsonify({'error': 'No story available for given city and mood'}), 404
+
+        story_text = random.choice(city_data[city][mood])
+
+        # Convert language for gTTS
         lang_map = {
-            'english': 'en',
-            'spanish': 'es',
-            'french': 'fr',
-            'german': 'de',
-            'italian': 'it',
-            'portuguese': 'pt',
-            'russian': 'ru',
-            'japanese': 'ja',
-            'korean': 'ko',
-            'chinese': 'zh'
+            'english': 'en', 'hindi': 'hi', 'bengali': 'bn', 'french': 'fr',
+            'german': 'de', 'spanish': 'es'
         }
-        
         gtts_lang = lang_map.get(language.lower(), 'en')
-        
-        # Generate audio using gTTS
+
         try:
-            tts = gTTS(text=story_text, lang=gtts_lang, slow=False)
+            tts = gTTS(text=story_text, lang=gtts_lang)
             tts.save(AUDIO_PATH)
-            logger.info(f"Audio file saved to {AUDIO_PATH}")
+            audio_url = url_for('static', filename=AUDIO_FILE, _external=True)
         except Exception as e:
-            logger.error(f"Error generating audio: {e}")
-            return jsonify({'error': 'Failed to generate audio'}), 500
-        
-        # Generate URL for the audio file
-        audio_url = url_for('static', filename=AUDIO_FILE, _external=True)
-        
+            audio_url = None
+            logger.warning(f"gTTS failed: {e}")
+
         return jsonify({
             'success': True,
-            'audio_url': audio_url,
             'story_text': story_text,
+            'audio_url': audio_url,
             'parameters': {
                 'city': city,
                 'mood': mood,
                 'language': language
             }
         })
-        
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        return jsonify({'error': 'Internal server error'}), 500
 
-@app.route('/')
-def root():
-    """API root endpoint"""
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        return jsonify({'error': 'Server error'}), 500
+
+@app.route('/generate-dynamic-story', methods=['POST'])
+def generate_dynamic_story():
     try:
-        # Test if stories can be loaded
-        stories = load_stories()
-        story_count = len(stories)
-        
+        data = request.get_json()
+        city = data.get('city')
+        mood = data.get('mood')
+        language = data.get('language', 'english')
+
+        if not all([city, mood, language]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Claude prompt
+        prompt = (
+            f"You are a local storyteller. Create a 3-paragraph immersive, emotional story "
+            f"for a traveler visiting {city} in a {mood} mood. Use rich cultural details and local charm."
+        )
+
+        headers = {
+            "x-api-key": os.getenv("CLAUDE_API_KEY"),
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+        }
+
+        payload = {
+            "model": "claude-3-opus-20240229",
+            "max_tokens": 700,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+
+        response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=payload)
+
+        if response.status_code != 200:
+            return jsonify({'error': 'Claude API failed', 'details': response.text}), 500
+
+        content = response.json()
+        story_text = content["content"][0]["text"]
+
+        # Language conversion for gTTS
+        lang_map = {
+            'english': 'en', 'hindi': 'hi', 'bengali': 'bn', 'french': 'fr',
+            'german': 'de', 'spanish': 'es'
+        }
+        gtts_lang = lang_map.get(language.lower(), 'en')
+
+        try:
+            tts = gTTS(text=story_text, lang=gtts_lang)
+            tts.save(AUDIO_PATH)
+            audio_url = url_for('static', filename=AUDIO_FILE, _external=True)
+        except Exception as e:
+            audio_url = None
+            logger.warning(f"Failed to generate audio: {e}")
+
         return jsonify({
-            'message': 'Flask Story Audio Generator API',
-            'version': '1.0.0',
-            'status': 'healthy',
-            'stories_loaded': story_count,
-            'endpoints': {
-                'health': '/health',
-                'generate_story': '/generate-story (POST)'
+            'success': True,
+            'story_text': story_text,
+            'audio_url': audio_url,
+            'parameters': {
+                'city': city,
+                'mood': mood,
+                'language': language
             }
         })
+
     except Exception as e:
-        logger.error(f"Error in root endpoint: {e}")
-        return jsonify({
-            'message': 'Flask Story Audio Generator API',
-            'version': '1.0.0',
-            'status': 'error',
-            'error': str(e)
-        }), 500
-
-@app.route('/debug', methods=['GET'])
-def debug():
-    """Debug endpoint to check file system"""
-    try:
-        import os
-        debug_info = {
-            'cwd': os.getcwd(),
-            'files': os.listdir('.'),
-            'python_path': os.sys.path,
-            'stories_exist': os.path.exists('city_stories.json'),
-            'static_exist': os.path.exists('static')
-        }
-        return jsonify(debug_info)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/health', methods=['GET'])
-def health_check():
-    """Health check endpoint"""
-    return jsonify({'status': 'healthy'})
-
-@app.route("/ping")
-def ping():
-    return "pong", 200
+        logger.error(f"Dynamic story error: {e}")
+        return jsonify({'error': 'Server error'}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    app.run(debug=True)
