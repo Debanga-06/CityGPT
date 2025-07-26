@@ -100,7 +100,6 @@ def find_story(stories, city, mood, language):
                 return story_data.get('story', story_data.get('text', ''))
     
     return None
-
 def generate_story_with_groq(city, mood, language, story_length="medium"):
     """Generate story using Groq API (FREE & FAST)"""
     try:
@@ -132,7 +131,7 @@ def generate_story_with_groq(city, mood, language, story_length="medium"):
         }
 
         payload = {
-            "model": "llama-3.1-70b-versatile",  # Fast and high-quality model
+            "model": "llama-3.1-8b-instant",  # 🔥 UPDATED MODEL - Fast & Supported
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 800 if story_length == "long" else 500,
             "temperature": 0.7  # Add creativity
@@ -164,7 +163,7 @@ def generate_story_with_groq(city, mood, language, story_length="medium"):
     except Exception as e:
         logger.error(f"Groq API error: {e}")
         return None, f"Failed to generate story: {str(e)}"
-
+    
 @app.route('/generate-story', methods=['POST'])
 def generate_story():
     """Generate audio story based on city, mood, and language (from pre-written stories)"""
