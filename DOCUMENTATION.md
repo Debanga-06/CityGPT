@@ -252,24 +252,18 @@ npm run analyze      # Bundle analysis
 
 ```
 CityGPT/
-├── pages/
-│   ├── api/
-│   │   └── generate-story.js
-│   ├── _app.js
-│   └── index.js
-├── components/
-│   ├── StoryGenerator.js
-│   ├── AudioPlayer.js
-│   └── LanguageSelector.js
-├── styles/
-│   └── globals.css
-├── public/
-│   └── assets/
-├── utils/
-│   ├── groq-client.js
-│   └── validators.js
-├── .env.local
-├── package.json
+├── frontend/
+│   ├── app.js
+│   ├── app.css
+│   └── index.html
+├── backend/
+│   ├── app.py
+│   ├── .gitignore
+│   ├── city_stories.json
+│   ├── render.yaml
+│   └── requirements.txt
+├── DOCUMENTATION.md
+├── LICENSE
 └── README.md
 ```
 
