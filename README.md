@@ -1,17 +1,32 @@
-# 🏙️ CityGPT - AI Story Generator
+## 📖 Documentation
+
+For detailed information about CityGPT, please refer to our comprehensive documentation:
+
+**📋 [Complete Documentation](DOCUMENTATION.md)**
+
+**What you'll find:**
+- 🚀 **Getting Started Guide** - Step-by-step setup instructions
+- 🏗️ **Technical Architecture** - System design and data flow
+- ⚙️ **API Configuration** - Groq API setup and environment variables
+- 💻 **Development Setup** - Local installation and development workflow
+- 🚀 **Deployment Guide** - Production deployment instructions
+- 🔧 **Troubleshooting** - Common issues and solutions
+- ❓ **FAQ** - Frequently asked questions
+
+---# 🏙️ CityGPT - AI Story Generator
 
 <div align="center">
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=vercel)](https://citygpt.vercel.app)
 [![GitHub stars](https://img.shields.io/github/stars/Debanga-06/CityGPT?style=for-the-badge)](https://github.com/Debanga-06/CityGPT/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/Debanga-06/CityGPT?style=for-the-badge)](https://github.com/Debanga-06/CityGPT/network)
-[![License](https://img.shields.io/github/license/Debanga-06/CityGPT?style=for-the-badge)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://github.com/Debanga-06/CityGPT/blob/main/LICENSE)
 
 **🎧 Transform your imagination into magical audio stories**
 
 *Experience cities around the world through AI-generated stories with immersive audio narration*
 
-[🚀 Try Live Demo](https://citygpt.vercel.app) • [📖 Documentation](#documentation) • [🐛 Report Bug](https://github.com/Debanga-06/CityGPT/issues) • [💡 Request Feature](https://github.com/Debanga-06/CityGPT/issues)
+[🚀 Try Live Demo](https://citygpt.vercel.app) • [📖 Documentation](DOCUMENTATION.md) • [🐛 Report Bug](https://github.com/Debanga-06/CityGPT/issues) • [💡 Request Feature](https://github.com/Debanga-06/CityGPT/issues)
 
 </div>
 
@@ -206,15 +221,37 @@ VERCEL_URL=your_vercel_deployment_url
 
 ---
 
-## 👥 Development Team
+## 👨‍💻 Author
 
-**Developed entirely by:** [Debanga-06](https://github.com/Debanga-06)
+<div align="center">
+  <img src="https://github.com/Debanga-06.png" width="120px" style="border-radius: 50%;" alt="Debanga-06"/>
+  
+  **[Debanga-06](https://github.com/Debanga-06)**
+  
+  *Full-Stack Developer & AI Enthusiast*
+  
+  [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Debanga-06)
+  [![Portfolio](https://img.shields.io/badge/Portfolio-FF5722?style=for-the-badge&logo=google-chrome&logoColor=white)](#)
+  [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/debanga-guria)
+</div>
 
-**Special thanks to my amazing teammates for their support and collaboration:**
-- **Subhadip Pal** - Thank you for your guidance and valuable insights throughout the development process! 🙏
-- **Malay Pandey** - Appreciate your feedback and encouragement that helped make CityGPT even better! 🌟
+### About the Creator
 
-*While the entire codebase was crafted by me, the success of this project wouldn't have been possible without the collaborative spirit and support of my incredible team!*
+Hey there! 👋 I'm a developer behind CityGPT, passionate about creating innovative AI applications that bring stories to life. This project combines my love for:
+
+- 🤖 **Artificial Intelligence** - Leveraging cutting-edge language models
+- 🌍 **Cultural Diversity** - Supporting multiple languages and global cities  
+- 🎨 **Creative Technology** - Merging storytelling with modern web development
+- 🔊 **Audio Experiences** - Creating immersive narrative journeys
+
+**Tech Stack I Love Working With:**
+`React` `Next.js` `JavaScript` `Python` `AI/ML` `Node.js` `Vercel` `Git`
+
+### Development Philosophy
+
+*"Technology should amplify human creativity, not replace it. CityGPT is designed to spark imagination and celebrate the diverse stories that make each city unique."*
+
+---
 
 ---
 
@@ -263,12 +300,29 @@ We welcome contributions to make CityGPT even better! Here's how you can help:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](https://github.com/Debanga-06/CityGPT/blob/main/LICENSE) file for details.
+
+### What this means:
+- ✅ **Free to use** - Use CityGPT for personal or commercial projects
+- ✅ **Modify freely** - Customize and adapt the code to your needs
+- ✅ **Distribute** - Share your modifications with others
+- ✅ **Private use** - Use in closed-source projects
+- ⚠️ **Attribution required** - Include the original copyright notice
+- ❌ **No warranty** - Software is provided "as is"
+
+**TL;DR:** You can do almost anything with this code, just keep the copyright notice! 🎉
 
 ---
 
-## 🙏 Acknowledgments
+## 🙏 Acknowledgments & Team
 
+**Special thanks to my amazing teammates for their support and collaboration:**
+- **Subhadip Pal** - Thank you for your guidance and valuable insights throughout the development process! 🙏
+- **Malay Pandey** - Appreciate your feedback and encouragement that helped make CityGPT even better! 🌟
+
+*The success of this project wouldn't have been possible without the collaborative spirit and support of my incredible team!*
+
+**Technology Partners:**
 - **Groq** - For providing fast and efficient AI language model capabilities
 - **Vercel** - For seamless deployment and hosting
 - **Text-to-Speech Providers** - For high-quality audio generation
