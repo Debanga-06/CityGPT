@@ -621,7 +621,6 @@ form.addEventListener('submit', async (e) => {
         let responseData;
         let isFromAI = false;
 
-        // STEP 1: Try pre-written stories first (faster)
         console.log('Trying pre-written stories...');
         btnText.textContent = 'Checking pre-written stories...';
         
@@ -636,7 +635,6 @@ form.addEventListener('submit', async (e) => {
         responseData = await response.json();
         console.log('Pre-written response:', responseData);
 
-        // STEP 2: If no pre-written story found, use Groq AI
         if (!response.ok || !responseData.success) {
             console.log('No pre-written story found, using Groq AI...');
             btnText.textContent = 'Generating with AI...';
@@ -661,7 +659,6 @@ form.addEventListener('submit', async (e) => {
             console.log('AI response:', responseData);
         }
 
-        // STEP 3: Handle the final response
         if (response.ok && responseData.success) {
             // Success
             result.classList.add('success');
@@ -674,7 +671,7 @@ form.addEventListener('submit', async (e) => {
                 audioPlayer.style.display = 'block';
             }
 
-            // Show story text with source indicator
+            // Showing story text with source indicator
             const sourceText = isFromAI ? ' (AI Generated)' : ' (Curated)';
             storyText.innerHTML = `
                 <div style="margin-bottom: 10px; font-size: 0.9em; color: rgba(255,255,255,0.8); font-style: italic;">
@@ -710,8 +707,7 @@ form.addEventListener('submit', async (e) => {
         // Reset button state
         generateBtn.disabled = false;
         generateBtn.classList.remove('btn-loading');
-        
-        // Reset button text after a delay if successful
+
         setTimeout(() => {
             if (!btnText.textContent.includes('Error')) {
                 btnText.textContent = '✨ Generate Story Audio';
@@ -758,10 +754,10 @@ window.addEventListener("load", () => {
         .catch(() => console.warn("Backend is still sleeping..."));
 });
 
-// Add smooth scroll behavior
+// Smooth scroll behavior
 document.documentElement.style.scrollBehavior = 'smooth';
 
-// Add keyboard navigation support
+// Keyboard navigation support
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && e.target.tagName === 'BUTTON') {
         e.target.click();
